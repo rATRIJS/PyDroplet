@@ -21,6 +21,11 @@ class PyDropletOptionValidator:
         return value
 
     def validatePort(self, value, default):
+        try:
+            value = int(value)
+        except ValueError:
+            raise PyDropletOptionValidatorException('Field `port` must be an integer')
+
         return value
 
     def validatePath(self, value, default):
@@ -194,15 +199,12 @@ class PyDroplet:
             self.options['server']
         )
         
-        manifestFile = self.options['file'] + '/PyDroplet-' + self.options['server'] + '.desktop'
+        manifestFile = '%s/PyDroplet-%s.desktop' % (self.options['file'], self.options['server'])
         
         with open(manifestFile, 'wb') as f:
             f.write(manifest)
             
         os.chmod(manifestFile, 0777)
-        
-        print manifest
-        print self.options['file']
         
     def runScp(self):
         try:
@@ -264,9 +266,18 @@ class PyDroplet:
 
             try:
                 value = self.validator.validate(option, value, default)
-
-                print Fore.GREEN + Style.BRIGHT + 'Option `' + option + '` set to value `' + str(value) + '`' + Style.RESET_ALL + Fore.RESET + '\n'
                 success = True
+
+                print '%sOption `%s%s%s` set to value `%s%s%s`%s\n' % (
+                    (Fore.GREEN + Style.BRIGHT),
+                    Fore.YELLOW,
+                    str(option),
+                    Fore.GREEN,
+                    Fore.YELLOW,
+                    str(value),
+                    Fore.GREEN,
+                    (Style.RESET_ALL + Fore.RESET)
+                )
             except PyDropletOptionValidatorException as e:
                 success = False
 
