@@ -154,7 +154,8 @@ class PyDroplet:
 
         for key, value in options.items():
             try:
-                self.validator.validate(key, value, requiredOptions[key])
+                value = self.validator.validate(key, value, requiredOptions[key])
+                self.options[key] = value
             except PyDropletOptionValidatorException as e:
                 self.fail(e.value)
             
