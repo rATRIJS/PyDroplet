@@ -53,7 +53,7 @@ class PyDropletOptionValidator:
     def __checkEmpty(self, field, value, default):
         if(value == ''):
             if(default == False):
-                raise PyDropletOptionValidatorException('Field `%s` myst not be empty' % (field));
+                raise PyDropletOptionValidatorException('Field `%s` must not be empty' % (field));
             else:
                 return default
 
@@ -145,15 +145,17 @@ class PyDroplet:
         for key, value in options.items():
             options[key[2:]] = value
             del options[key]
-        
+
         for key, value in requiredOptions.items():
             if(key not in options):
-                if(value == False):
-                    self.fail('You must provide ' + key + ' option.')
-                else:
-                    self.options[key] = value
-            else:
-                self.options[key] = options[key]
+                options[key] = ''
+
+        for key, value in options.items():
+            try:
+                self.validator.validate(key, value, requiredOptions[key])
+            except PyDropletOptionValidatorException as e:
+                self.fail(e.value)
+            
         
     def run(self):
         v = getattr(self, self.actionMap[self.action]['method'])()
@@ -250,7 +252,7 @@ class PyDroplet:
         self.pynotify.Notification('PyDroplet', message).show()
     
     def fail(self, reason):
-        print reason
+        print Fore.RED + Style.BRIGHT + reason + Style.RESET_ALL + Fore.RESET + '\n'
         
         sys.exit(0)
 
@@ -258,7 +260,10 @@ class PyDroplet:
         success = False
 
         while(success is False):
-            value = raw_input(question + ': ')
+            try:
+                value = raw_input(question + ': ')
+            except KeyboardInterrupt:
+                self.fail('Script exiting because of user interrupt');
 
             try:
                 value = self.validator.validate(option, value, default)
@@ -273,8 +278,15 @@ class PyDroplet:
         self.options[option] = value
 
     def __prepareDependencies(self):
-        import pynotify # notification API for Linux
-        import paramiko # enables SSH support in Python
+        try:
+            import pynotify # notification API for Linux
+        except ImportError:
+            self.fail('PyNotify module is necessary for this script to work')
+        
+        try:    
+            import paramiko # enables SSH support in Python
+        except ImportError:
+            self.fail('Paramiko module is necessary for this script to work')
 
         self.pynotify = pynotify
         self.paramiko = paramiko
