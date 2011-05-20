@@ -2,14 +2,11 @@
 
 import sys
 import os
-import time
 
 import getopt # used to parse given executable attributes
 import inspect # used to inspect currently executed script
 import getpass # used to get user password input from terminal window
 
-#import pynotify # notification API for Linx
-#import paramiko # enables SSH support in Python
 from colorama import Fore, Style # allows to use colours in terminal output
 
 class PyDropletOptionValidator:
